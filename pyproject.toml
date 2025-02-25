@@ -1,0 +1,20 @@
+[project]
+name = "spt-act-likelihood"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Frank Qu, Fei Ge"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy (>=2.2.3,<3.0.0)",
+    "scipy (>=1.15.2,<2.0.0)",
+    "tqdm (>=4.67.1,<5.0.0)",
+    "requests (>=2.32.3,<3.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
