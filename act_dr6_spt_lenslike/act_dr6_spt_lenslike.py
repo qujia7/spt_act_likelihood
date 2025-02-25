@@ -328,8 +328,8 @@ def load_data(variant, ddir=None,
         spt_data = np.load('/home/r/rbond/jiaqu/spt_act/muse_likelihood.npz')
         y=spt_data['d_kk']
         start = 0
-        end = -1
-        ell=spt_data['bpwf'][:,:]@np.arange(5000)
+        end = None
+        ell=spt_data['bpwf'][:,:]@np.arange(1,5001)
 
     nbins_tot_act = y.size
     d['full_data_binned_clkk_act'] = y.copy()
