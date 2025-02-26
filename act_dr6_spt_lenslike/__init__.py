@@ -2,4 +2,4 @@
 __author__ = ["Mathew Madhavacheril", "Ian Harrison"]
 __version__ = "1.2.0"
 
-from .act_dr6_lenslike import *
+from .act_dr6_spt_lenslike import *

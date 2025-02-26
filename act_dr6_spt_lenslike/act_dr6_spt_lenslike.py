@@ -215,7 +215,8 @@ def parse_variant(variant):
     include_planck = True if 'actplanck' in variant else False
     include_spt = True if 'actplanckspt3g' in variant else False
     include_spt_no_planck = True if 'actspt3g' in variant else False
-    return v,baseline,include_planck,include_spt,include_spt_no_planck
+    only_spt = True if v=='spt3g' else False
+    return v,baseline,include_planck,include_spt,include_spt_no_planck,only_spt
 
 # ==================            
 # Generic likelihood
@@ -234,7 +235,7 @@ so for example,
 chi_square = -2 lnlike
 """
 
-def load_data(variant, ddir=None,
+def load_data(variant, indep=False, ddir=None,
               lens_only=False,
               apply_hartlap=True,like_corrections=True,mock=False,
               nsims_act=796,nsims_planck=400,trim_lmax=2998,scale_cov=None,
@@ -272,7 +273,7 @@ def load_data(variant, ddir=None,
 
 
     print(f"Loading ACT DR6 lensing likelihood {version}...")
-    v,baseline,include_planck,include_spt,include_spt_no_planck= parse_variant(variant)
+    v,baseline,include_planck,include_spt,include_spt_no_planck, only_spt= parse_variant(variant)
     if include_planck and act_cmb_rescale: raise ValueError
     
 
@@ -287,6 +288,7 @@ def load_data(variant, ddir=None,
     d['include_spt'] = include_spt
     d['include_spt_no_planck'] = include_spt_no_planck
     d['likelihood_corrections'] = like_corrections
+    d['only_spt'] = only_spt
 
     # Fiducial spectra
     if like_corrections:
@@ -325,11 +327,11 @@ def load_data(variant, ddir=None,
     elif v=='spt3g':  
         print("spt only")
 
-        spt_data = np.load('/home/r/rbond/jiaqu/spt_act/muse_likelihood.npz')
+        spt_data = np.load(f'{ddir}/muse_likelihood.npz')
         y=spt_data['d_kk']
         start = 0
-        end = -1
-        ell=spt_data['bpwf'][:,:]@np.arange(5000)
+        end = None
+        ell=spt_data['bpwf'][:,:]@np.arange(1,5001)
 
     nbins_tot_act = y.size
     d['full_data_binned_clkk_act'] = y.copy()
@@ -342,13 +344,20 @@ def load_data(variant, ddir=None,
 
     if v=='spt3g':
         binmat = spt_data['bpwf']
+        d['full_binmat_act'] = binmat.copy()
+        pells = np.arange(1, binmat.shape[1]+1)
+        bcents = binmat@pells
+        ls = np.arange(1, binmat.shape[1]+1)
+        d['binmat_act'] = standardize(ls,binmat[start:end,:],3100,extra_dims="xy")
+        d['bcents_act'] = bcents[start:end].copy()
+    else:
 
-    d['full_binmat_act'] = binmat.copy()
-    pells = np.arange(binmat.shape[1])
-    bcents = binmat@pells
-    ls = np.arange(binmat.shape[1])
-    d['binmat_act'] = standardize(ls,binmat[start:end,:],trim_lmax,extra_dims="xy")
-    d['bcents_act'] = bcents[start:end].copy()
+        d['full_binmat_act'] = binmat.copy()
+        pells = np.arange(binmat.shape[1])
+        bcents = binmat@pells
+        ls = np.arange(binmat.shape[1])
+        d['binmat_act'] = standardize(ls,binmat[start:end,:],trim_lmax,extra_dims="xy")
+        d['bcents_act'] = bcents[start:end].copy()
 
     if act_cmb_rescale:
         # load A_L_fid / A_L_ACT and standardize it
@@ -372,8 +381,14 @@ def load_data(variant, ddir=None,
         if include_spt:  
             #fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g.txt')
             fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal.txt')
+            if indep:
+                fcov[:-16, -16:] = 0 # others_x_spt block
+                fcov[-16:, :-16] = 0 # spt_x_others block
         elif include_spt_no_planck:
             fcov = np.loadtxt(f'{ddir}/covmat_actspt3g.txt')
+            if indep:
+                fcov[:-16, -16:] = 0 # others_x_spt block
+                fcov[-16:, :-16] = 0 # spt_x_others block
 
     
         else:
@@ -404,24 +419,29 @@ def load_data(variant, ddir=None,
     d['full_act_cov'] = fcov.copy()
 
     # Remove trailing bins from ACT part
-    sel = np.s_[nbins_tot_act+end:nbins_tot_act]
+    if end is None:
+        sel = np.s_[nbins_tot_act:nbins_tot_act]
+    else:
+        sel = np.s_[nbins_tot_act+end:nbins_tot_act]
     cov = np.delete(np.delete(fcov,sel,0),sel,1)
     # Remove leading bins from ACT part
     sel = np.s_[:start]
     cov = np.delete(np.delete(cov,sel,0),sel,1)
     
     # Test
-    if v=='spt3g':
+    #if v=='spt3g':
         #covmat = np.loadtxt(f'{ddir}/covmat_spt3g_proper_corr.txt')
-        covmat = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal.txt')
-    else:
+    #    covmat = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal.txt')[-16:, -16]
+    #else:
+    
+    if 'act' in variant:
         covmat = np.loadtxt(f'{ddir}/covmat_act.txt')
 
-    covmat1 = covmat[start:end,start:end]
+        covmat1 = covmat[start:end,start:end]
 
-    cdiff = cov[:nbins_act,:nbins_act] - covmat1
+        cdiff = cov[:nbins_act,:nbins_act] - covmat1
 
-    if not(np.all(np.isclose(cdiff,0))): raise ValueError
+        if not(np.all(np.isclose(cdiff,0))): raise ValueError
 
     if include_planck:
         data_planck = np.loadtxt(f'{ddir}/clkk_bandpowers_planck.txt')
@@ -435,7 +455,7 @@ def load_data(variant, ddir=None,
 
     if include_spt or include_spt_no_planck:
 
-        spt_data = np.load('/home/r/rbond/jiaqu/spt_act/muse_likelihood.npz')
+        spt_data = np.load(f'{ddir}/muse_likelihood.npz')
         data_spt=spt_data['d_kk']
   
 
@@ -444,8 +464,8 @@ def load_data(variant, ddir=None,
         binmat = spt_data['bpwf'][:,:]
         pells = np.arange(binmat.shape[1])
         bcents = binmat@pells
-        ls = np.arange(binmat.shape[1])
-        d['binmat_spt'] = standardize(ls,binmat,trim_lmax,extra_dims="xy")
+        ls = np.arange(1, binmat.shape[1]+1)
+        d['binmat_spt'] = standardize(ls,binmat,3100,extra_dims="xy")
         d['bcents_spt'] = bcents.copy()
     
 
@@ -501,7 +521,10 @@ def load_data(variant, ddir=None,
 def generic_lnlike(data_dict,ell_kk,cl_kk,ell_cmb,cl_tt,cl_ee,cl_te,cl_bb,trim_lmax=2998,
                    return_theory=False,do_norm_corr=True,act_calib=False,no_actlike_cmb_corrections=False):
 
+    cl_kk_spt = standardize(ell_kk,cl_kk,3100)
     cl_kk = standardize(ell_kk,cl_kk,trim_lmax)
+    #print("ell_kk is %i"%len(ell_kk))
+    #cl_kk_spt = standardize(ell_kk,cl_kk,3098)
     cl_tt = standardize(ell_cmb,cl_tt,trim_lmax)
     cl_ee = standardize(ell_cmb,cl_ee,trim_lmax)
     cl_bb = standardize(ell_cmb,cl_bb,trim_lmax)
@@ -509,15 +532,21 @@ def generic_lnlike(data_dict,ell_kk,cl_kk,ell_cmb,cl_tt,cl_ee,cl_te,cl_bb,trim_l
     
     d = data_dict
     cinv = d['cinv']
-    clkk_act = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,
+    if d['only_spt']:
+        clkk_act = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,
+                                  do_norm_corr=do_norm_corr,act_calib=act_calib,
+                                  no_like_cmb_corrections=no_actlike_cmb_corrections) if d['likelihood_corrections'] else cl_kk_spt
+        bclkk = d['binmat_act'] @ clkk_act
+    else:
+        clkk_act = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,
                                   do_norm_corr=do_norm_corr,act_calib=act_calib,
                                   no_like_cmb_corrections=no_actlike_cmb_corrections) if d['likelihood_corrections'] else cl_kk
-    bclkk = d['binmat_act'] @ clkk_act
+        bclkk = d['binmat_act'] @ clkk_act
     if d['include_planck']:
         clkk_planck = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,'_planck') if d['likelihood_corrections'] else cl_kk
         bclkk = np.append(bclkk, d['binmat_planck'] @ clkk_planck)
     if d['include_spt'] or d['include_spt_no_planck']:
-        clkk_spt = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,'_spt3g') if d['likelihood_corrections'] else cl_kk
+        clkk_spt = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,'_spt3g') if d['likelihood_corrections'] else cl_kk_spt
         bclkk = np.append(bclkk, d['binmat_spt'] @ clkk_spt)
     delta = d['data_binned_clkk'] - bclkk
     lnlike = -0.5 * np.dot(delta,np.dot(cinv,delta))
@@ -535,7 +564,7 @@ def generic_lnlike(data_dict,ell_kk,cl_kk,ell_cmb,cl_tt,cl_ee,cl_te,cl_bb,trim_l
 
 class ACTDR6LensLike(InstallableLikelihood):
 
-    lmax: int = 4000
+    lmax: int = 5000
     mock = False
     nsims_act = 792. # Number of sims used for covmat; used in Hartlap correction
     nsims_planck = 400. # Number of sims used for covmat; used in Hartlap correction
@@ -545,6 +574,7 @@ class ACTDR6LensLike(InstallableLikelihood):
     # Any ells above this will be discarded; likelihood must at least request ells up to this
     trim_lmax = 2998
     variant = "act_baseline"
+    indep = False
     apply_hartlap = True
     # Limber integral parameters
     limber = False
@@ -560,7 +590,7 @@ class ACTDR6LensLike(InstallableLikelihood):
     def initialize(self):
         if self.lens_only: self.no_like_corrections = True
         if self.lmax<self.trim_lmax: raise ValueError(f"An lmax of at least {self.trim_lmax} is required.")
-        self.data = load_data(variant=self.variant,lens_only=self.lens_only,
+        self.data = load_data(variant=self.variant,indep=self.indep,lens_only=self.lens_only,
                               like_corrections=not(self.no_like_corrections),apply_hartlap=self.apply_hartlap,
                               mock=self.mock,nsims_act=self.nsims_act,nsims_planck=self.nsims_planck,
                               trim_lmax=self.trim_lmax,scale_cov=self.scale_cov,version=self.version,
@@ -585,6 +615,7 @@ class ACTDR6LensLike(InstallableLikelihood):
 
     def logp(self, **params_values):
         cl = self.provider.get_Cl(ell_factor=False, units='FIRASmuK2')
+        print('ell in logp is %i'%(len(cl['ell'])))
         return self.loglike(cl, **params_values)
 
     def get_limber_clkk(self,**params_values):
@@ -603,6 +634,7 @@ class ACTDR6LensLike(InstallableLikelihood):
         else:
             cl_kk = pp_to_kk(clpp,ell)
         
+        print('ell in loglike is %i'%(len(ell)))
         logp = generic_lnlike(self.data,ell,cl_kk,ell,cl['tt'],cl['ee'],cl['te'],cl['bb'],self.trim_lmax,
                               do_norm_corr=not(self.act_cmb_rescale),act_calib=self.act_calib,
                               no_actlike_cmb_corrections=self.no_actlike_cmb_corrections)
