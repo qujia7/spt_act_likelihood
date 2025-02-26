@@ -3,9 +3,7 @@ from cobaya.likelihood import Likelihood
 
 class ClKappaLikelihood(Likelihood):
     # Data and binning matrices (Load from external files if needed)
-    bin_edges = np.array([8, 21, 40, 66, 101, 145, 199, 264, 339, 426, 526, 
-                           638, 763, 902, 1250, 1300, 1500, 1700, 1800, 
-                           2048, 2500, 3000, 5000])
+    bin_edges=np.array([8,40,66,101,145,199,264,339,426,526,638,763,902,1100,1300,1815,2362,3100])
     # Number of alpha parameters is one less than the number of bin edges.
     n_alpha = len(bin_edges) - 1
     def get_requirements(self):
@@ -47,7 +45,7 @@ class ClKappaLikelihood(Likelihood):
         #                            638, 763, 902, 1250, 1300, 1500, 1700, 1800, 
         #                            2048, 2500, 3000, 5000])
 
-        self.bin_edges=np.array([21,40,66,101,145,199,264,339,426,526,638,763,902,1250])
+        self.bin_edges=np.array([8,40,66,101,145,199,264,339,426,526,638,763,902,1100,1300,1815,2362,3100])
         start = 2
         end = -3
         self.binning_act=self.binning_act[start:end,:]

@@ -23,4 +23,4 @@ module load python
 source /home/r/rbond/jiaqu/.bashrc
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
 
-srun -n 4 cobaya-run uber_kk.yaml
+srun -n 4 cobaya-run uber_kk_wide_alpha.yaml
