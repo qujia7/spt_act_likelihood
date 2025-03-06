@@ -615,7 +615,7 @@ class ACTDR6LensLike(InstallableLikelihood):
 
     def logp(self, **params_values):
         cl = self.provider.get_Cl(ell_factor=False, units='FIRASmuK2')
-        print('ell in logp is %i'%(len(cl['ell'])))
+        # print('ell in logp is %i'%(len(cl['ell'])))
         return self.loglike(cl, **params_values)
 
     def get_limber_clkk(self,**params_values):
@@ -634,7 +634,7 @@ class ACTDR6LensLike(InstallableLikelihood):
         else:
             cl_kk = pp_to_kk(clpp,ell)
         
-        print('ell in loglike is %i'%(len(ell)))
+        # print('ell in loglike is %i'%(len(ell)))
         logp = generic_lnlike(self.data,ell,cl_kk,ell,cl['tt'],cl['ee'],cl['te'],cl['bb'],self.trim_lmax,
                               do_norm_corr=not(self.act_cmb_rescale),act_calib=self.act_calib,
                               no_actlike_cmb_corrections=self.no_actlike_cmb_corrections)
