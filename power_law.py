@@ -1,5 +1,7 @@
 import numpy as np
+import os
 from cobaya.likelihood import Likelihood
+default_version = "v1.2"
 
 class ClKappaLikelihood(Likelihood):
     # Data and binning matrices (Load from external files if needed)
@@ -15,14 +17,18 @@ class ClKappaLikelihood(Likelihood):
 
     def initialize(self):
 
-        binning_act="/gpfs/fs1/home/r/rbond/jiaqu/act_dr6_lenslike/act_dr6_lenslike/data/v1.2/binning_matrix_act.txt"
-        binning_planck="/gpfs/fs1/home/r/rbond/jiaqu/act_dr6_lenslike/act_dr6_lenslike/data/v1.2/binning_matrix_planck.txt"
-        binning_spt= "/gpfs/fs1/home/r/rbond/jiaqu/act_dr6_lenslike/act_dr6_lenslike/data/v1.2/binning_spt.txt"
-        clkk_act="/gpfs/fs1/home/r/rbond/jiaqu/act_dr6_lenslike/act_dr6_lenslike/data/v1.2/clkk_bandpowers_act.txt"
-        clkk_planck="/gpfs/fs1/home/r/rbond/jiaqu/act_dr6_lenslike/act_dr6_lenslike/data/v1.2/clkk_bandpowers_planck.txt"
-        clkk_spt="/gpfs/fs1/home/r/rbond/jiaqu/act_dr6_lenslike/act_dr6_lenslike/data/v1.2/clkk_spt.txt"
-        clkk_fiducial= "/gpfs/fs1/home/r/rbond/jiaqu/act_dr6_lenslike/act_dr6_lenslike/data/v1.2/clkk_fiducial_2018.txt"
-        covariance="/gpfs/fs1/home/r/rbond/jiaqu/act_dr6_lenslike/act_dr6_lenslike/data/v1.2/covmat_actplanckspt3g.txt"
+        file_dir = os.path.abspath(os.path.dirname(__file__))
+        ddir = f"{file_dir}/data/{default_version}/"
+
+        binning_act=f"{ddir}/binning_matrix_act.txt"
+        binning_planck=f"{ddir}/binning_matrix_planck.txt"
+        binning_spt= f"{ddir}/binning_spt.txt"
+        clkk_act=f"{ddir}/clkk_bandpowers_act.txt"
+        clkk_planck=f"{ddir}/clkk_bandpowers_planck.txt"
+        clkk_spt=f"{ddir}/clkk_spt.txt"
+        clkk_fiducial= f"{ddir}/clkk_fiducial_2018.txt"
+        covariance=f"{ddir}/covmat_actplanckspt3g.txt"
+        
         """Load necessary data and precompute quantities."""
         # Load data and binning matrices (These paths come from the YAML file)
         self.binning_act = np.loadtxt(binning_act)
