@@ -257,7 +257,6 @@ def load_data(variant, indep=False, ddir=None,
     corresponding to the lower of the number of simulations involved.
     
     """
-    # TODO: review defaults
     if version is None:
         version = default_version
 
@@ -520,8 +519,6 @@ def generic_lnlike(data_dict,ell_kk,cl_kk,ell_cmb,cl_tt,cl_ee,cl_te,cl_bb,trim_l
 
     cl_kk_spt = standardize(ell_kk,cl_kk,3100)
     cl_kk = standardize(ell_kk,cl_kk,trim_lmax)
-    #print("ell_kk is %i"%len(ell_kk))
-    #cl_kk_spt = standardize(ell_kk,cl_kk,3098)
     cl_tt = standardize(ell_cmb,cl_tt,trim_lmax)
     cl_ee = standardize(ell_cmb,cl_ee,trim_lmax)
     cl_bb = standardize(ell_cmb,cl_bb,trim_lmax)
