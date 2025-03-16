@@ -239,7 +239,7 @@ def load_data(variant, indep=False, ddir=None,
               lens_only=False,
               apply_hartlap=True,like_corrections=True,mock=False,
               nsims_act=796,nsims_planck=400,trim_lmax=2998,scale_cov=None,
-              version=None, act_cmb_rescale=False, act_calib=False):
+              version=None, act_cmb_rescale=False, act_calib=False,spt_start=0,spt_end=None):
     """
     Given a data directory path, this function loads into a dictionary
     the data products necessary for evaluating the DR6 lensing likelihood.
@@ -328,14 +328,18 @@ def load_data(variant, indep=False, ddir=None,
         print("spt only")
 
         spt_data = np.load(f'{ddir}/muse_likelihood.npz')
-        y=spt_data['d_kk']
+        y=spt_data['d_kk'][spt_start:spt_end]
+        
         start = 0
         end = None
-        ell=spt_data['bpwf'][:,:]@np.arange(1,5001)
+        ell=spt_data['bpwf'][spt_start:spt_end,:]@np.arange(1,5001)
 
     nbins_tot_act = y.size
     d['full_data_binned_clkk_act'] = y.copy()
-    data_act = y[start:end].copy()
+    if v=='spt3g': 
+        data_act = y.copy() 
+    else:
+        data_act = y[start:end].copy()
     d['data_binned_clkk'] = data_act
     nbins_act = data_act.size
         
@@ -343,13 +347,14 @@ def load_data(variant, indep=False, ddir=None,
     binmat = np.loadtxt(f'{ddir}/binning_matrix_act.txt')
 
     if v=='spt3g':
-        binmat = spt_data['bpwf']
+        #binmat = spt_data['bpwf']
+        binmat = spt_data['bpwf'][spt_start:spt_end,:]
         d['full_binmat_act'] = binmat.copy()
         pells = np.arange(1, binmat.shape[1]+1)
         bcents = binmat@pells
         ls = np.arange(1, binmat.shape[1]+1)
-        d['binmat_act'] = standardize(ls,binmat[start:end,:],3100,extra_dims="xy")
-        d['bcents_act'] = bcents[start:end].copy()
+        d['binmat_act'] = standardize(ls,binmat[:,:],3100,extra_dims="xy")
+        d['bcents_act'] = bcents[:].copy()
     else:
 
         d['full_binmat_act'] = binmat.copy()
@@ -379,7 +384,6 @@ def load_data(variant, indep=False, ddir=None,
             if v not in [None,'cinpaint']: raise ValueError(f"Combination of {v} with Planck is not available")
             fcov = np.loadtxt(f'{ddir}/covmat_actplanck_cmbmarg.txt')
         if include_spt:  
-            #fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g.txt')
             fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal.txt')
             if indep:
                 fcov[:-16, -16:] = 0 # others_x_spt block
@@ -392,14 +396,13 @@ def load_data(variant, indep=False, ddir=None,
 
     
         else:
-            print("are you using else statement?")
             if v=='cibdeproj':
                 fcov = np.loadtxt(f"{ddir}/covmat_act_cibdeproj_cmbmarg.txt")
             elif v=='pol':
                 fcov = np.loadtxt(f"{ddir}/covmat_act_polonly_cmbmarg.txt")
             elif v=='spt3g':
                 fcov=spt_data['cov_kk']
-                #fcov = np.loadtxt(f"{ddir}/covmat_spt3g_proper_corr.txt")
+                fcov=fcov[spt_start:spt_end,spt_start:spt_end]
             
             else:
                 fcov = np.loadtxt(f"{ddir}/covmat_act_cmbmarg.txt")
@@ -408,9 +411,9 @@ def load_data(variant, indep=False, ddir=None,
         if v not in [None,'cinpaint']: raise ValueError(f"Covmat for {v} without CMB marginalization is not available")
         if include_planck:
             fcov = np.loadtxt(f'{ddir}/covmat_actplanck.txt')
-        elif include_spt:
-            #fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g.txt')
+        if include_spt:
             fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal.txt')
+            
         elif include_spt_no_planck:
             fcov = np.loadtxt(f'{ddir}/covmat_actspt3g.txt')
         else:
@@ -427,13 +430,7 @@ def load_data(variant, indep=False, ddir=None,
     # Remove leading bins from ACT part
     sel = np.s_[:start]
     cov = np.delete(np.delete(cov,sel,0),sel,1)
-    
-    # Test
-    #if v=='spt3g':
-        #covmat = np.loadtxt(f'{ddir}/covmat_spt3g_proper_corr.txt')
-    #    covmat = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal.txt')[-16:, -16]
-    #else:
-    
+
     if 'act' in variant:
         covmat = np.loadtxt(f'{ddir}/covmat_act.txt')
 
@@ -546,9 +543,11 @@ def generic_lnlike(data_dict,ell_kk,cl_kk,ell_cmb,cl_tt,cl_ee,cl_te,cl_bb,trim_l
         clkk_planck = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,'_planck') if d['likelihood_corrections'] else cl_kk
         bclkk = np.append(bclkk, d['binmat_planck'] @ clkk_planck)
     if d['include_spt'] or d['include_spt_no_planck']:
-        clkk_spt = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,'_spt3g') if d['likelihood_corrections'] else cl_kk_spt
+        clkk_spt = cl_kk_spt
         bclkk = np.append(bclkk, d['binmat_spt'] @ clkk_spt)
+
     delta = d['data_binned_clkk'] - bclkk
+
     lnlike = -0.5 * np.dot(delta,np.dot(cinv,delta))
 
     if return_theory:
@@ -587,6 +586,9 @@ class ACTDR6LensLike(InstallableLikelihood):
     act_cmb_rescale = False
     act_calib = False
 
+    spt_start=0
+    spt_end=None
+
     def initialize(self):
         if self.lens_only: self.no_like_corrections = True
         if self.lmax<self.trim_lmax: raise ValueError(f"An lmax of at least {self.trim_lmax} is required.")
@@ -594,7 +596,7 @@ class ACTDR6LensLike(InstallableLikelihood):
                               like_corrections=not(self.no_like_corrections),apply_hartlap=self.apply_hartlap,
                               mock=self.mock,nsims_act=self.nsims_act,nsims_planck=self.nsims_planck,
                               trim_lmax=self.trim_lmax,scale_cov=self.scale_cov,version=self.version,
-                              act_cmb_rescale=self.act_cmb_rescale,act_calib=self.act_calib)
+                              act_cmb_rescale=self.act_cmb_rescale,act_calib=self.act_calib,spt_start=self.spt_start,spt_end=self.spt_end)
         
         if self.no_like_corrections:
             self.requested_cls = ["pp"]
@@ -615,7 +617,6 @@ class ACTDR6LensLike(InstallableLikelihood):
 
     def logp(self, **params_values):
         cl = self.provider.get_Cl(ell_factor=False, units='FIRASmuK2')
-        print('ell in logp is %i'%(len(cl['ell'])))
         return self.loglike(cl, **params_values)
 
     def get_limber_clkk(self,**params_values):
@@ -633,8 +634,8 @@ class ACTDR6LensLike(InstallableLikelihood):
             cl_kk = self.get_limber_clkk( **params_values)
         else:
             cl_kk = pp_to_kk(clpp,ell)
+            
         
-        print('ell in loglike is %i'%(len(ell)))
         logp = generic_lnlike(self.data,ell,cl_kk,ell,cl['tt'],cl['ee'],cl['te'],cl['bb'],self.trim_lmax,
                               do_norm_corr=not(self.act_cmb_rescale),act_calib=self.act_calib,
                               no_actlike_cmb_corrections=self.no_actlike_cmb_corrections)
