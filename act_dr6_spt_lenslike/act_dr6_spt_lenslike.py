@@ -402,7 +402,8 @@ def load_data(variant, indep=False, ddir=None,
                 #fcov = np.loadtxt(f"{ddir}/covmat_spt3g_proper_corr.txt")
             
             else:
-                fcov = np.loadtxt(f"{ddir}/covmat_act_cmbmarg.txt")
+                if not include_planck:
+                    fcov = np.loadtxt(f"{ddir}/covmat_act_cmbmarg.txt")
 
     else:
         if v not in [None,'cinpaint']: raise ValueError(f"Covmat for {v} without CMB marginalization is not available")
