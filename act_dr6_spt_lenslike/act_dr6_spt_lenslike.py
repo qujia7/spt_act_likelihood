@@ -417,7 +417,8 @@ def load_data(variant, indep=False, ddir=None,
         elif include_spt_no_planck:
             fcov = np.loadtxt(f'{ddir}/covmat_actspt3g.txt')
         else:
-            fcov = np.loadtxt(f'{ddir}/covmat_act.txt')
+            if not include_planck:
+                fcov = np.loadtxt(f'{ddir}/covmat_act.txt')
 
     d['full_act_cov'] = fcov.copy()
 
@@ -544,6 +545,8 @@ def generic_lnlike(data_dict,ell_kk,cl_kk,ell_cmb,cl_tt,cl_ee,cl_te,cl_bb,trim_l
         clkk_spt = cl_kk_spt
         bclkk = np.append(bclkk, d['binmat_spt'] @ clkk_spt)
 
+    #print(d['data_binned_clkk'])
+    print(cinv[0,0])
     delta = d['data_binned_clkk'] - bclkk
 
     lnlike = -0.5 * np.dot(delta,np.dot(cinv,delta))
