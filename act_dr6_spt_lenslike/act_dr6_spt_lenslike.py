@@ -412,10 +412,9 @@ def load_data(variant, indep=False, ddir=None,
         if include_planck:
             fcov = np.loadtxt(f'{ddir}/covmat_actplanck.txt')
         if include_spt:
-            fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal.txt')
-            
+            fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal_no_cmbmarg.txt')
         elif include_spt_no_planck:
-            fcov = np.loadtxt(f'{ddir}/covmat_actspt3g.txt')
+            fcov = np.loadtxt(f'{ddir}/covmat_actspt3g_no_cmbmarg.txt')
         else:
             if not include_planck:
                 fcov = np.loadtxt(f'{ddir}/covmat_act.txt')
