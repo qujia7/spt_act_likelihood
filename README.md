@@ -2,14 +2,14 @@
 
 This repository contains likelihood software for the ACT + SPT CMB lensing analysis. If you use this software and/or the associated data, please cite the following papers:
 
-- [SPT and ACT Collaborations (2025), arXiv: 2504.xxxxx](https://arxiv.org/abs/2504.xxxxx)
-- [Ge, Millea, Camphuis, Daley, Huang, Omori, Quan et al SPT-3G Collaboration (2024), arXiv: 2411.06000](https://arxiv.org/abs/2411.06000)
-- [Madhavacheril, Qu, Sherwin, MacCrann, Li et al ACT Collaboration (2023), arXiv:2304.05203](https://arxiv.org/abs/2304.05203)
-- [Qu, Sherwin, Madhavacheril, Han, Crowley et al ACT Collaboration (2023), arXiv:2304.05202](https://arxiv.org/abs/2304.05202)
-- [MacCrann, Sherwin, Qu, Namikawa, Madhavacheril et al ACT Collaboration (2024), arXiv: 2304.05196](https://arxiv.org/abs/2304.05196)
+- [ACT and SPT Collaborations (2025), arXiv: 2504.xxxxx](https://arxiv.org/abs/2504.xxxxx)
+- [F. Ge _et al_ (SPT-3G Collaboration) 2024, arXiv: 2411.06000](https://arxiv.org/abs/2411.06000)
+- [Mathew S. Madhavacheril _et al_ (ACT Collaboration) 2024 _ApJ_ **962**, arXiv:2304.05203](https://arxiv.org/abs/2304.05203)
+- [Frank J. Qu _et al_ (ACT Collaboration) 2024 _ApJ_ **962** 112, arXiv:2304.05202](https://arxiv.org/abs/2304.05202)
+- [Niall MacCrann _et al_ (ACT Collaboration) 2024 _ApJ_ **966** 138, arXiv: 2304.05196](https://arxiv.org/abs/2304.05196)
 
 In addition, if you use the SPT+ACT+Planck lensing combination variant from the likelihood, please also cite:
-- [Carron, Mirmelstein, Lewis (2022), arXiv:2206.07773, JCAP09(2022)039](https://arxiv.org/abs/2206.07773)
+- [Julien Carron _et al_ JCAP09(2022)039, arXiv:2206.07773](https://arxiv.org/abs/2206.07773)
 
 ## Chains
 
@@ -38,7 +38,6 @@ Extract the tarball into the `act_dr6_spt_lenslike/data/` directory in the clone
 ### SPT
 
 Where?
-Do we also need 2pt correction files?
 
 ### Covariances
 
@@ -75,18 +74,14 @@ Your Cobaya YAML or dictionary should have an entry of this form
 
 ```
 likelihood:
-    act_dr6_spt_lenslike.ACTDR6LensLike:
-        lens_only: False
-        stop_at_error: True
-        lmax: 4000
-        variant: act_baseline
+  act_dr6_spt_lenslike.ACTDR6LensLike:
+    lens_only: False
+    stop_at_error: True
+    lmax: 4000
+    variant: act_baseline
 ```
 
-No other parameters need to be set. (e.g. do not manually set `like_corrections` or `no_like_corrections` here).
-An example is provided in `XXX.yaml`. If, however, you are combining with
-the ACT DR4 CMB 2-point power spectrum likelihood, you should also set `no_actlike_cmb_corrections: True`
-(in addition to `lens_only: True` as described below). You do not need to do this if you are combining
-with Planck CMB 2-point power spectrum likelihoods.
+No other parameters need to be set. (e.g. do not manually set `like_corrections` or `no_like_corrections` here). An example is provided in `XXX.yaml`. If, however, you are combining with the ACT DR4 CMB 2-point power spectrum likelihood, you should also set `no_actlike_cmb_corrections: True` (in addition to `lens_only: True` as described below). You do not need to do this if you are combining with Planck CMB 2-point power spectrum likelihoods. Similarly, SPT data do not require likelihood corrections either. For more details on likelihood corrections, see Appendix B in Qu _et al_ 2024.
 
 ### Important parameters
 
@@ -106,11 +101,23 @@ with Planck CMB 2-point power spectrum likelihoods.
 
 ### Recommended theory accuracy
 
-For CAMB calls, we recommend the following (or higher accuracy):
-- `lmax`: 4000
-- `lens_margin`:1250
-- `lens_potential_accuracy`: 4
-- `AccuracyBoost`:1
-- `lSampleBoost`:1
-- `lAccuracyBoost`:1
-- `halofit_version`:`mead2016`
+We use [class-sz](https://github.com/CLASS-SZ), for which the following accuracy parameters are needed:
+
+```
+theory:
+  classy_szfast.classy_sz.classy_sz:
+    use_class_sz_fast_mode: 1
+    lensing_lkl: ACT
+    path: null
+    stop_at_error: true
+    extra_args:
+      output: tCl,lCl,pCl,mPk
+      skip_chi: 0
+      skip_hubble: 0
+      skip_sigma8_and_der: 0
+      cosmo_model: 6
+      N_ur: 0.00441
+      N_ncdm: 1
+      deg_ncdm: 3
+      class_sz_verbose: 0
+```
