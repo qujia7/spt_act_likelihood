@@ -86,20 +86,28 @@ class ACTLikeTest(unittest.TestCase):
         
     def test_spt3g_lensonly(self):
         self.generic_call('spt3g',True,19.69)
-    # def test_act_spt3g_baseline(self):
-    #     self.generic_call('actspt3g_baseline',False,19.69)
-    # def test_act_spt3g_extended(self):
-    #     self.generic_call('actspt3g_extended',False,26.27)
+        
+    def test_act_spt3g_baseline(self):
+        self.generic_call('actspt3g_baseline',False,35.55)
+        
+    def test_act_spt3g_extended(self):
+        self.generic_call('actspt3g_extended',False,39.27)
+        
     def test_act_spt3g_baseline_lensonly(self):
         self.generic_call('actspt3g_baseline',True,33.00)
+        
     def test_act_spt3g_extended_lensonly(self):
         self.generic_call('actspt3g_extended',True,36.77)
-    # def test_actplanck_spt3g_baseline(self):
-    #     self.generic_call('actplanckspt3g_baseline',False,26.27)
-    # def test_actplanck_spt3g_extended(self):
-    #     self.generic_call('actplanckspt3g_extended',False,32.85)
+        
+    def test_actplanck_spt3g_baseline(self):
+        self.generic_call('actplanckspt3g_baseline',False,38.40)
+        
+    def test_actplanck_spt3g_extended(self):
+        self.generic_call('actplanckspt3g_extended',False,41.75)
+        
     def test_actplanck_spt3g_baseline_lensonly(self):
         self.generic_call('actplanckspt3g_baseline',True,38.17)
+        
     def test_actplanck_spt3g_extended_lensonly(self):
         self.generic_call('actplanckspt3g_extended',True,41.46)
 
@@ -116,12 +124,12 @@ if __name__ == '__main__':
     ACTLikeTest().test_act_cibdeproj_lensonly()
     ACTLikeTest().test_act_cinpaint_lensonly()
     ACTLikeTest().test_spt3g_lensonly()
-    # ACTLikeTest().test_act_spt3g_baseline()
-    # ACTLikeTest().test_act_spt3g_extended()
+    ACTLikeTest().test_act_spt3g_baseline()
+    ACTLikeTest().test_act_spt3g_extended()
     ACTLikeTest().test_act_spt3g_baseline_lensonly()
     ACTLikeTest().test_act_spt3g_extended_lensonly()
-    # ACTLikeTest().test_actplanck_spt3g_baseline()
-    # ACTLikeTest().test_actplanck_spt3g_extended()
+    ACTLikeTest().test_actplanck_spt3g_baseline()
+    ACTLikeTest().test_actplanck_spt3g_extended()
     ACTLikeTest().test_actplanck_spt3g_baseline_lensonly()
     ACTLikeTest().test_actplanck_spt3g_extended_lensonly()
         
