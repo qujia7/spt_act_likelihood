@@ -216,6 +216,8 @@ def parse_variant(variant):
     include_spt = True if 'actplanckspt3g' in variant else False
     include_spt_no_planck = True if 'actspt3g' in variant else False
     only_spt = True if v=='spt3g' else False
+
+
     return v,baseline,include_planck,include_spt,include_spt_no_planck,only_spt
 
 # ==================            
@@ -324,14 +326,13 @@ def load_data(variant, indep=False, ddir=None,
         y = np.loadtxt(f'{ddir}/clkk_bandpowers_act_cibdeproj.txt')
 
     elif v=='spt3g':  
-        print("spt only")
-
         spt_data = np.load(f'{ddir}/muse_likelihood.npz')
         y=spt_data['d_kk'][spt_start:spt_end]
-        
         start = 0
         end = None
         ell=spt_data['bpwf'][spt_start:spt_end,:]@np.arange(1,5001)
+
+
 
     nbins_tot_act = y.size
     d['full_data_binned_clkk_act'] = y.copy()
@@ -339,6 +340,7 @@ def load_data(variant, indep=False, ddir=None,
         data_act = y.copy() 
     else:
         data_act = y[start:end].copy()
+        
     d['data_binned_clkk'] = data_act
     nbins_act = data_act.size
         
@@ -354,8 +356,8 @@ def load_data(variant, indep=False, ddir=None,
         ls = np.arange(1, binmat.shape[1]+1)
         d['binmat_act'] = standardize(ls,binmat[:,:],3100,extra_dims="xy")
         d['bcents_act'] = bcents[:].copy()
-    else:
 
+    else:
         d['full_binmat_act'] = binmat.copy()
         pells = np.arange(binmat.shape[1])
         bcents = binmat@pells
@@ -393,7 +395,6 @@ def load_data(variant, indep=False, ddir=None,
                 fcov[:-16, -16:] = 0 # others_x_spt block
                 fcov[-16:, :-16] = 0 # spt_x_others block
 
-    
         else:
             if v=='cibdeproj':
                 fcov = np.loadtxt(f"{ddir}/covmat_act_cibdeproj_cmbmarg.txt")
@@ -402,6 +403,7 @@ def load_data(variant, indep=False, ddir=None,
             elif v=='spt3g':
                 fcov=spt_data['cov_kk']
                 fcov=fcov[spt_start:spt_end,spt_start:spt_end]
+         
             
             else:
                 if not include_planck:
@@ -409,16 +411,19 @@ def load_data(variant, indep=False, ddir=None,
 
     else:
         if v not in [None,'cinpaint']: raise ValueError(f"Covmat for {v} without CMB marginalization is not available")
-        if include_planck:
-            fcov = np.loadtxt(f'{ddir}/covmat_actplanck.txt')
-        if include_spt:
+      
+        if include_planck and include_spt:
+            # When both Planck and SPT are enabled
             fcov = np.loadtxt(f'{ddir}/covmat_actplanckspt3g_analytic_offdiagonal_no_cmbmarg.txt')
-            
+        elif include_planck:
+            # When only Planck is enabled
+            fcov = np.loadtxt(f'{ddir}/covmat_actplanck.txt')
         elif include_spt_no_planck:
+            # When only SPT (no Planck) is enabled
             fcov = np.loadtxt(f'{ddir}/covmat_actspt3g_no_cmbmarg.txt')
         else:
-            if not include_planck:
-                fcov = np.loadtxt(f'{ddir}/covmat_act.txt')
+            # Default option
+            fcov = np.loadtxt(f'{ddir}/covmat_act.txt')
 
     d['full_act_cov'] = fcov.copy()
 
@@ -432,11 +437,10 @@ def load_data(variant, indep=False, ddir=None,
     sel = np.s_[:start]
     cov = np.delete(np.delete(cov,sel,0),sel,1)
 
+
     if 'act' in variant:
         covmat = np.loadtxt(f'{ddir}/covmat_act.txt')
-
         covmat1 = covmat[start:end,start:end]
-
         cdiff = cov[:nbins_act,:nbins_act] - covmat1
 
         if not(np.all(np.isclose(cdiff,0))): raise ValueError
@@ -455,9 +459,6 @@ def load_data(variant, indep=False, ddir=None,
 
         spt_data = np.load(f'{ddir}/muse_likelihood.npz')
         data_spt=spt_data['d_kk']
-  
-
-
         d['data_binned_clkk'] = np.append(d['data_binned_clkk'],data_spt)
         binmat = spt_data['bpwf'][:,:]
         pells = np.arange(binmat.shape[1])
@@ -533,6 +534,7 @@ def generic_lnlike(data_dict,ell_kk,cl_kk,ell_cmb,cl_tt,cl_ee,cl_te,cl_bb,trim_l
                                   do_norm_corr=do_norm_corr,act_calib=act_calib,
                                   no_like_cmb_corrections=no_actlike_cmb_corrections) if d['likelihood_corrections'] else cl_kk_spt
         bclkk = d['binmat_act'] @ clkk_act
+
     else:
         clkk_act = get_corrected_clkk(data_dict,cl_kk,cl_tt,cl_te,cl_ee,cl_bb,
                                   do_norm_corr=do_norm_corr,act_calib=act_calib,
