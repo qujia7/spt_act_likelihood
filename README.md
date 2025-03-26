@@ -1,4 +1,4 @@
-# SPT-3G + ACT DR6 + Planck NPIPE Lensing Likelihood
+# ACT DR6 + SPT-3G + Planck NPIPE Lensing Likelihood
 
 This repository contains likelihood software for the ACT + SPT CMB lensing analysis. If you use this software and/or the associated data, please cite the following papers:
 
