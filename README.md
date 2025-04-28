@@ -8,15 +8,10 @@ This repository contains likelihood software for the ACT + SPT CMB lensing analy
 - [Frank J. Qu _et al_ (ACT Collaboration) 2024 _ApJ_ **962** 112, arXiv:2304.05202](https://arxiv.org/abs/2304.05202)
 - [Niall MacCrann _et al_ (ACT Collaboration) 2024 _ApJ_ **966** 138, arXiv: 2304.05196](https://arxiv.org/abs/2304.05196)
 
-In addition, if you use the SPT+ACT+Planck lensing combination variant from the likelihood, please also cite:
+In addition, if you use any variant involving Planck lensing from the likelihood, please also cite:
 - [Julien Carron _et al_ JCAP09(2022)039, arXiv:2206.07773](https://arxiv.org/abs/2206.07773)
 
-## Chains
 
-Are we releasing chains? If so, where?
-
-
-A pre-release version of the chains are available [here](). Please make sure to read the README file.
 
 ## Step 1: Install
 
@@ -33,15 +28,13 @@ Tests can be run using
 ### ACT
 Download the likelihood data tarball for ACT DR6 lensing from [NASA's LAMBDA archive](https://lambda.gsfc.nasa.gov/product/act/actadv_prod_table.html).
 
-Extract the tarball into the `act_dr6_spt_lenslike/data/` directory in the cloned repository such the directory `v1.2` is directly inside it. Only then should you proceed with the next steps.
+Extract the tarball into the `act_dr6_spt_lenslike/data/` directory in the cloned repository such that the directory `v1.2` is directly inside it. Note that the bandpowers and covariances are already available in the above directory. Only the likelihood correction matrices are required in the installation.
+Only then should you proceed with the next steps.
 
 ### SPT
 
-Where?
+The SPT bandpowers are found already in the data directory above. 
 
-### Covariances
-
-Where?
     
 ## Step 3: use in Python codes
 
@@ -101,7 +94,7 @@ No other parameters need to be set. (e.g. do not manually set `like_corrections`
 
 ### Recommended theory accuracy
 
-We use [class-sz](https://github.com/CLASS-SZ), for which the following accuracy parameters are needed:
+If you use [class-sz](https://github.com/CLASS-SZ),  he following accuracy parameters are needed for the theory code:
 
 ```
 theory:
