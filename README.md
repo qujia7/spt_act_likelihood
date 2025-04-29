@@ -94,7 +94,7 @@ No other parameters need to be set. (e.g. do not manually set `like_corrections`
 
 ### Recommended theory accuracy
 
-If you use [class-sz](https://github.com/CLASS-SZ),  he following accuracy parameters are needed for the theory code:
+If you use [class-sz](https://github.com/CLASS-SZ),  the following accuracy parameters are needed for the theory code:
 
 ```
 theory:
