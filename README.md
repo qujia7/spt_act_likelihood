@@ -94,6 +94,16 @@ No other parameters need to be set. (e.g. do not manually set `like_corrections`
 
 ### Recommended theory accuracy
 
+For CAMB calls, we recommend the following (or higher accuracy):
+
+lmax: 4000
+lens_margin:1250
+lens_potential_accuracy: 4
+AccuracyBoost:1
+lSampleBoost:1
+lAccuracyBoost:1
+halofit_version:mead2016
+
 If you use [class-sz](https://github.com/CLASS-SZ),  the following accuracy parameters are needed for the theory code:
 
 ```
