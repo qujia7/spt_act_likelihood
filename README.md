@@ -2,7 +2,7 @@
 
 This repository contains likelihood software for the ACT + SPT CMB lensing analysis. If you use this software and/or the associated data, please cite the following papers:
 
-- [ACT and SPT Collaborations (2025), arXiv: 2504.xxxxx](https://arxiv.org/abs/2504.xxxxx)
+- [ACT and SPT Collaborations (2025), arXiv:2504.20038](https://arxiv.org/abs/2504.20038)
 - [F. Ge _et al_ (SPT-3G Collaboration) 2024, arXiv: 2411.06000](https://arxiv.org/abs/2411.06000)
 - [Mathew S. Madhavacheril _et al_ (ACT Collaboration) 2024 _ApJ_ **962**, arXiv:2304.05203](https://arxiv.org/abs/2304.05203)
 - [Frank J. Qu _et al_ (ACT Collaboration) 2024 _ApJ_ **962** 112, arXiv:2304.05202](https://arxiv.org/abs/2304.05202)
